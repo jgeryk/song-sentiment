@@ -4,7 +4,7 @@ import pandas as pd
 import heapq as heap
 
 data = pd.read_csv('Ratings_Warriner_et_al.csv')
-SONG_FILE = 'lyrics/of_montreal/wintered_debts.txt'
+SONG_FILE = 'lyrics/of_montreal/spiteful_intervention.txt'
 
 affect_map = {
     30: 'Happy',
@@ -33,7 +33,6 @@ def calculate_angle(x, y):
         degrees = 360 - (-degrees)
     return degrees
 
-# Index a word like this data[data['Word'] == 'aardvark']
 def qualify(lyrics):
     valence, arousal, std_dev_arousal, std_dev_valence = 0,0,0,0
     word_count = 0
@@ -41,13 +40,11 @@ def qualify(lyrics):
         word_data = data[data['Word'] == word]
         if not word_data.empty:
             word_count += 1
-            print word, ' Arousal: ', float(word_data['A.Mean.Sum']), '  Valence: ', float(word_data['V.Mean.Sum'])
+            print word, ' Arousal: ', 2.5*(float(word_data['A.Mean.Sum'])-5), '  Valence: ', 2.5*(float(word_data['V.Mean.Sum'])-5)
             arousal += 2.5*(float(word_data['A.Mean.Sum'])-5)
             valence += 2.5*(float(word_data['V.Mean.Sum'])- 5)
             std_dev_valence += float(word_data['V.SD.Sum'])
             std_dev_arousal += float(word_data['A.SD.Sum'])
-    # avg_valence_scaled = ((valence/word_count)-5) * 2.5
-    # avg_arousal_scaled = ((arousal/word_count)-5) * 2.5
     print arousal/word_count
     print valence/word_count
     return {'Valence': valence, 'Arousal': arousal, 'Std_Dev': (std_dev_valence+std_dev_arousal)/(word_count*2)}
