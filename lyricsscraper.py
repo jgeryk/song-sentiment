@@ -11,12 +11,16 @@ def generating(artist, title, save):
 
 def processing(generate_url, artist, title, save):
     # response = urllib2.request.urlopen(generate_url)
-    response = urllib2.urlopen(generate_url)
-    read_lyrics = response.read()
-    soup = BeautifulSoup(read_lyrics)
-    lyrics = soup.find_all("div", attrs={"class": None, "id": None})
-    lyrics = [x.getText() for x in lyrics]
-    printing(artist, title, save, lyrics)
+    try:
+        response = urllib2.urlopen(generate_url)
+    except HTTPError, URLError:
+        print 'OOOPS. '
+    else:
+        read_lyrics = response.read()
+        soup = BeautifulSoup(read_lyrics)
+        lyrics = soup.find_all("div", attrs={"class": None, "id": None})
+        lyrics = [x.getText() for x in lyrics]
+        printing(artist, title, save, lyrics)
 
 def printing(artist, title, save, lyrics):
     for x in lyrics:
