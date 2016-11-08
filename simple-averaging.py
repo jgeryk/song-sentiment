@@ -17,7 +17,8 @@ affect_map = {
     240: 'Depressed',
     270: 'Bored',
     300: 'Calm',
-    330: 'Serene'
+    330: 'Serene',
+    360: 'Content'
 }
 
 def read_lyrics_from_file(file):
@@ -41,8 +42,8 @@ def qualify(lyrics):
         if not word_data.empty:
             word_count += 1
             print word, ' Arousal: ', 2.5*(float(word_data['A.Mean.Sum'])-5), '  Valence: ', 2.5*(float(word_data['V.Mean.Sum'])-5)
-            arousal += 2.5*(float(word_data['A.Mean.Sum'])-5)
-            valence += 2.5*(float(word_data['V.Mean.Sum'])- 5)
+            arousal += (2.5*(float(word_data['A.Mean.Sum']) - 5)) + 3
+            valence += (2.5*(float(word_data['V.Mean.Sum']) - 5)) - 2
             std_dev_valence += float(word_data['V.SD.Sum'])
             std_dev_arousal += float(word_data['A.SD.Sum'])
     print arousal/word_count
