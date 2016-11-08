@@ -13,7 +13,7 @@ def processing(generate_url, artist, title, save):
     # response = urllib2.request.urlopen(generate_url)
     try:
         response = urllib2.urlopen(generate_url)
-    except HTTPError, URLError:
+    except urllib2.HTTPError, urllib2.URLError:
         print 'OOOPS. '
     else:
         read_lyrics = response.read()
