@@ -1,7 +1,15 @@
+from collections import defaultdict
+
+NEG_TAG = '-'
+POS_TAG = '+'
+NEU_TAG = '0'
+
 class NaiveBayes:
     def __init__(self):
         # Vocabulary is a set that stores every word seen in the training data
         self.vocab = set()
+        self.affect_tag_count = 0.0
+        self.total_affect_counts = defaultdict(float)
         # class_total_doc_counts is a dictionary that maps a class (i.e., pos/neg) to
         # the number of documents in the training set of that class
         self.class_total_doc_counts = { POS_TAG: 0.0,
@@ -42,6 +50,7 @@ class NaiveBayes:
         print "NUMBER OF TOKENS IN POSITIVE CLASS:", self.class_total_word_counts[POS_TAG]
         print "NUMBER OF TOKENS IN NEUTRAL CLASS:", self.class_total_word_counts[NEU_TAG]
         print "NUMBER OF TOKENS IN NEGATIVE CLASS:", self.class_total_word_counts[NEG_TAG]
+        print "AVERAGE AFFECT TAGS PER SONG:", self.affect_tag_count/sum(class_total_doc_counts.values())
         print "VOCABULARY SIZE: NUMBER OF UNIQUE WORDTYPES IN TRAINING CORPUS:", len(self.vocab)
 
     def top_n(self, label, n):

@@ -56,7 +56,7 @@ class MusixMatch:
                 tracks.append(track)
         for trackName in tracks:
             print 'Saving ', trackName, ' to text file.'
-            artist_no_punc = "beatles"
+            artist_no_punc = "foofighters"
             track_no_punc = re.sub(r'\W+', '', trackName)
             lyricsscraper.generating(artist_no_punc, track_no_punc, True)
             time.sleep(10 + 10 * random.random())
@@ -66,4 +66,4 @@ class MusixMatch:
 
 if __name__ == "__main__":
     mm = MusixMatch(1)
-    mm.save_lyric_discography("the_beatles")
+    mm.save_lyric_discography("foo_fighters")
