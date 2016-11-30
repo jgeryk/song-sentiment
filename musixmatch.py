@@ -22,7 +22,7 @@ class MusixMatch:
     def get_albums(self, artist):
         album_ids = []
         artist_id = self.get_artist_id(artist)
-        query_string = self.ROOT_URL + 'artist.albums.get?artist_id=' + artist_id + '&s_release_date=asc&g_album_name=1&page_size=100' + self.API_KEY
+        query_string = self.ROOT_URL + 'artist.albums.get?artist_id=' + artist_id + '&s_release_date=desc&g_album_name=1&page_size=100' + self.API_KEY
         qr = json.loads(urllib2.urlopen(query_string).read())
         album_list = qr['message']['body']['album_list']
         for album in album_list:
@@ -56,7 +56,7 @@ class MusixMatch:
                 tracks.append(track)
         for trackName in tracks:
             print 'Saving ', trackName, ' to text file.'
-            artist_no_punc = "foofighters"
+            artist_no_punc = "animalcollective"
             track_no_punc = re.sub(r'\W+', '', trackName)
             lyricsscraper.generating(artist_no_punc, track_no_punc, True)
             time.sleep(10 + 10 * random.random())
@@ -66,4 +66,4 @@ class MusixMatch:
 
 if __name__ == "__main__":
     mm = MusixMatch(1)
-    mm.save_lyric_discography("foo_fighters")
+    mm.save_lyric_discography("animal_collective")

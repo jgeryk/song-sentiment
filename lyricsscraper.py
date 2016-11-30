@@ -32,6 +32,6 @@ def printing(artist, title, save, lyrics):
         pass
 
 def saving(artist, title, lyrics):
-        f = open(os.getcwd() + '/lyrics/foofighters/' + title + '.txt', 'w')
+        f = open(os.getcwd() + '/lyrics/anco/' + title + '.txt', 'w')
         f.write("\n".join(lyrics).encode('utf-8').strip())
         f.close()

@@ -11,7 +11,8 @@ lmtzr = WordNetLemmatizer()
 NEG_TAG = '-'
 POS_TAG = '+'
 NEU_TAG = '0'
-PATH_TO_TRAIN = os.getcwd() + '/song-sentiment-data/'
+PATH_TO_DATA = os.getcwd() + '/song-sentiment-data'
+PATH_TO_TRAIN = os.getcwd() + '/song-sentiment-data'
 PATH_TO_TEST = os.getcwd() + '/song-sentiment-data/test'
 
 def read_lyrics_from_file(file):
@@ -72,6 +73,22 @@ def drange(start, stop, step):
         yield r
         r += step
 
+def split_by_class():
+    pos_songs = []
+    neu_songs = []
+    neg_songs = []
+    for f in os.listdir(PATH_TO_DATA):
+        f = os.path.join(PATH_TO_TRAIN,f)
+        with open(f, 'r') as txt:
+            category = txt.readline().split(',')[0]
+        if category == '+': pos_songs.append(f)
+        elif category == '0': neu_songs.append(f)
+        else neg_songs.append(f)
+    return (pos_songs, neu_songs, neg_songs)
+
+def cross_validate():
+    songs_by_class = split_by_category()
+
 def evaluate_sa_with_biases():
     training_set = os.listdir(PATH_TO_TRAIN)
     sa = SimpleAveraging()
@@ -114,8 +131,9 @@ def evaluate_sa_with_biases():
     plt.title('Simple Averaging: Arousal Biases With Affect Map')
     plt.show()
 
-evaluate_sa_with_biases()
 
+# evaluate_sa_with_biases()
+cross_validate()
 # nb = NaiveBayes()
 # training_set = os.listdir(PATH_TO_TRAIN)
 # doc_count = 0
@@ -126,13 +144,13 @@ evaluate_sa_with_biases()
 #     sentiment = classification.pop(0)
 #     lemmas_as_bow = tokenize_doc_bow(lyrics)
 #     nb.update_model(lemmas_as_bow, sentiment)
-#
-#     lemmas_as_list = tokenize_doc_words(lyrics)
-#     lyrics_affect_data = sa.qualify(lemmas_as_list, -2, 1)
-#     sent_pred = sa.simple_classify(lyrics_affect_data)
-#     if sent_pred == sentiment:
-#         sa_accurate += 1.0
-#
+
+    # lemmas_as_list = tokenize_doc_words(lyrics)
+    # lyrics_affect_data = sa.qualify(lemmas_as_list, -2, 1)
+    # sent_pred = sa.simple_classify(lyrics_affect_data)
+    # if sent_pred == sentiment:
+    #     sa_accurate += 1.0
+
 # nb.report_statistics_after_training()
 # print 'Doc Count ', doc_count
 # print 'Correct ', sa_accurate, ': ', 100*sa_accurate/doc_count, '%'
