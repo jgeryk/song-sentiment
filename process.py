@@ -14,6 +14,18 @@ NEU_TAG = '0'
 PATH_TO_DATA = os.getcwd() + '/song-sentiment-data'
 PATH_TO_TRAIN = os.getcwd() + '/song-sentiment-data'
 PATH_TO_TEST = os.getcwd() + '/song-sentiment-data/test'
+vocab = set()
+affect_tag_count = 0.0
+total_affect_counts = defaultdict(float)
+class_total_doc_counts = { POS_TAG: 0.0,
+                                NEG_TAG: 0.0,
+                                NEU_TAG: 0.0 }
+class_total_word_counts = { POS_TAG: 0.0,
+                                 NEG_TAG: 0.0,
+                                 NEU_TAG: 0.0 }
+class_word_counts = { POS_TAG: defaultdict(float),
+                           NEG_TAG: defaultdict(float),
+                           NEU_TAG: defaultdict(float) }
 
 def read_lyrics_from_file(file):
     words = []
@@ -83,11 +95,20 @@ def split_by_class():
             category = txt.readline().split(',')[0]
         if category == '+': pos_songs.append(f)
         elif category == '0': neu_songs.append(f)
-        else neg_songs.append(f)
-    return (pos_songs, neu_songs, neg_songs)
+        else: neg_songs.append(f)
+    return {'+': pos_songs, '0': neu_songs, '-': neg_songs}
 
-def cross_validate():
-    songs_by_class = split_by_category()
+def reportStatistics():
+
+def cross_validate(folds, method):
+    test_size = 100/folds
+    training_size = 100 - test_size
+    songs_by_class = split_by_class()
+    for f in range(0,folds):
+        test_set = songs_by_class['+'][int(test_size*f):int(test_size+test_size*f)] + songs_by_class['0'][int(test_size*f):int(test_size+test_size*f)] +songs_by_class['-'][int(test_size*f):int(test_size+test_size*f)]
+        training_set = songs_by_class['+'][int(test_size+test_size*f):] + songs_by_class['+'][:int(test_size*f)] + songs_by_class['0'][int(test_size+test_size*f):] + songs_by_class['0'][:int(test_size*f)] + songs_by_class['-'][int(test_size+test_size*f):] + songs_by_class['-'][:int(test_size*f)]
+        if method == 'nb':
+
 
 def evaluate_sa_with_biases():
     training_set = os.listdir(PATH_TO_TRAIN)
@@ -133,7 +154,7 @@ def evaluate_sa_with_biases():
 
 
 # evaluate_sa_with_biases()
-cross_validate()
+cross_validate(10, 'naive_bayes')
 # nb = NaiveBayes()
 # training_set = os.listdir(PATH_TO_TRAIN)
 # doc_count = 0
