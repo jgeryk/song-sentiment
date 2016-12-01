@@ -42,7 +42,6 @@ class NaiveBayes:
         """
         Report a number of statistics after training.
         """
-
         print "REPORTING CORPUS STATISTICS"
         print "NUMBER OF DOCUMENTS IN POSITIVE CLASS:", self.class_total_doc_counts[POS_TAG]
         print "NUMBER OF DOCUMENTS IN NEUTRAL CLASS:", self.class_total_doc_counts[NEU_TAG]

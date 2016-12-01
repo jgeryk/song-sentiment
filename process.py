@@ -4,8 +4,12 @@ from collections import defaultdict
 import re
 import os
 import matplotlib.pyplot as plt
+import sys
+
 from simpleaveraging import SimpleAveraging
 from naivebayes import NaiveBayes
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 lmtzr = WordNetLemmatizer()
 NEG_TAG = '-'
@@ -14,18 +18,6 @@ NEU_TAG = '0'
 PATH_TO_DATA = os.getcwd() + '/song-sentiment-data'
 PATH_TO_TRAIN = os.getcwd() + '/song-sentiment-data'
 PATH_TO_TEST = os.getcwd() + '/song-sentiment-data/test'
-vocab = set()
-affect_tag_count = 0.0
-total_affect_counts = defaultdict(float)
-class_total_doc_counts = { POS_TAG: 0.0,
-                                NEG_TAG: 0.0,
-                                NEU_TAG: 0.0 }
-class_total_word_counts = { POS_TAG: 0.0,
-                                 NEG_TAG: 0.0,
-                                 NEU_TAG: 0.0 }
-class_word_counts = { POS_TAG: defaultdict(float),
-                           NEG_TAG: defaultdict(float),
-                           NEU_TAG: defaultdict(float) }
 
 def read_lyrics_from_file(file):
     words = []
@@ -35,14 +27,7 @@ def read_lyrics_from_file(file):
     return words
 
 def tokenize_doc_words(doc):
-    """
-
-    Tokenize a document and return its bag-of-words representation.
-    doc - a string representing a document.
-    returns a dictionary mapping each word to the number of times it appears in doc.
-    """
     lemmas = []
-    # lowered_tokens = map(lambda t: t.lower(), tokens)
     for lines in doc:
         tokens = lines.split()
         lowered_tokens = map(lambda t: t.lower(), tokens)
@@ -59,7 +44,6 @@ def tokenize_doc_bow(doc):
     returns a dictionary mapping each word to the number of times it appears in doc.
     """
     bow = defaultdict(float)
-    # lowered_tokens = map(lambda t: t.lower(), tokens)
     for lines in doc:
         tokens = lines.split()
         lowered_tokens = map(lambda t: t.lower(), tokens)
@@ -98,7 +82,45 @@ def split_by_class():
         else: neg_songs.append(f)
     return {'+': pos_songs, '0': neu_songs, '-': neg_songs}
 
-def reportStatistics():
+def report_statistics():
+    vocab = set()
+    affect_tag_count = 0.0
+    total_affect_counts = defaultdict(float)
+    class_total_doc_counts = { POS_TAG: 0.0,
+                                    NEG_TAG: 0.0,
+                                    NEU_TAG: 0.0 }
+    class_total_word_counts = { POS_TAG: 0.0,
+                                     NEG_TAG: 0.0,
+                                     NEU_TAG: 0.0 }
+    class_word_counts = { POS_TAG: defaultdict(float),
+                               NEG_TAG: defaultdict(float),
+                               NEU_TAG: defaultdict(float) }
+    for f in os.listdir(PATH_TO_DATA):
+        f = os.path.join(PATH_TO_TRAIN,f)
+        with open(f, 'r') as txt:
+            lyrics = read_lyrics_from_file(os.path.join(PATH_TO_TRAIN,f))
+            classification = lyrics.pop(0).rstrip().split(',')
+            sentiment = classification.pop(0)
+            lemmas_as_bow = tokenize_doc_bow(lyrics)
+            class_total_doc_counts[sentiment] += 1.0
+            for c in classification:
+                affect_tag_count += 1.0
+                total_affect_counts[c] += 1.0
+            for lemma, count in lemmas_as_bow.iteritems():
+                vocab.add(lemma)
+                class_total_word_counts[sentiment] += count
+                class_word_counts[sentiment][lemma] += count
+    sorted(self.class_word_counts[label].items(), key=lambda (w,c): -c)[:n]
+    print "REPORTING CORPUS STATISTICS"
+    print "NUMBER OF DOCUMENTS IN POSITIVE CLASS:", class_total_doc_counts[POS_TAG]
+    print "NUMBER OF DOCUMENTS IN NEUTRAL CLASS:", class_total_doc_counts[NEU_TAG]
+    print "NUMBER OF DOCUMENTS IN NEGATIVE CLASS:", class_total_doc_counts[NEG_TAG]
+    print "NUMBER OF LEMMAS IN POSITIVE CLASS:", class_total_word_counts[POS_TAG]
+    print "NUMBER OF LEMMAS IN NEUTRAL CLASS:", class_total_word_counts[NEU_TAG]
+    print "NUMBER OF LEMMAS IN NEGATIVE CLASS:", class_total_word_counts[NEG_TAG]
+    print "AVERAGE AFFECT TAGS PER SONG:", affect_tag_count/sum(class_total_doc_counts.values())
+    print total_affect_counts
+    print "VOCABULARY SIZE: NUMBER OF UNIQUE LEMMAS IN TRAINING CORPUS:", len(vocab)
 
 def cross_validate(folds, method):
     test_size = 100/folds
@@ -108,6 +130,7 @@ def cross_validate(folds, method):
         test_set = songs_by_class['+'][int(test_size*f):int(test_size+test_size*f)] + songs_by_class['0'][int(test_size*f):int(test_size+test_size*f)] +songs_by_class['-'][int(test_size*f):int(test_size+test_size*f)]
         training_set = songs_by_class['+'][int(test_size+test_size*f):] + songs_by_class['+'][:int(test_size*f)] + songs_by_class['0'][int(test_size+test_size*f):] + songs_by_class['0'][:int(test_size*f)] + songs_by_class['-'][int(test_size+test_size*f):] + songs_by_class['-'][:int(test_size*f)]
         if method == 'nb':
+            pass
 
 
 def evaluate_sa_with_biases():
@@ -152,9 +175,9 @@ def evaluate_sa_with_biases():
     plt.title('Simple Averaging: Arousal Biases With Affect Map')
     plt.show()
 
-
+report_statistics()
 # evaluate_sa_with_biases()
-cross_validate(10, 'naive_bayes')
+# cross_validate(10, 'naive_bayes')
 # nb = NaiveBayes()
 # training_set = os.listdir(PATH_TO_TRAIN)
 # doc_count = 0
