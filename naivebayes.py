@@ -24,6 +24,7 @@ class NaiveBayes:
         self.class_word_counts = defaultdict(lambda : defaultdict(float))
 
     def train_model(self, training_set):
+        print len(training_set)
         for f in training_set:
             lyrics = read_lyrics_from_file(os.path.join(PATH_TO_DATA,f))
             classification = lyrics.pop(0).rstrip().split(',')
