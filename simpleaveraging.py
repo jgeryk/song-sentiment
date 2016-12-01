@@ -2,24 +2,10 @@ from __future__ import division
 import math
 import pandas as pd
 import heapq as heap
+from util import *
 
 data = pd.read_csv('Ratings_Warriner_et_al.csv')
 SONG_FILE = 'lyrics/of_montreal/spiteful_intervention.txt'
-
-affect_map = {
-    30: 'Happy',
-    60: 'Excited',
-    90: 'Alert',
-    120: 'Tense',
-    150: 'Stressed',
-    180: 'Upset',
-    210: 'Sad',
-    240: 'Depressed',
-    270: 'Bored',
-    300: 'Calm',
-    330: 'Serene',
-    360: 'Content'
-}
 
 class SimpleAveraging:
     # def __init__(self):

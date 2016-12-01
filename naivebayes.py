@@ -1,8 +1,6 @@
 from collections import defaultdict
-
-NEG_TAG = '-'
-POS_TAG = '+'
-NEU_TAG = '0'
+import os
+from util import *
 
 class NaiveBayes:
     def __init__(self):
@@ -12,45 +10,56 @@ class NaiveBayes:
         self.total_affect_counts = defaultdict(float)
         # class_total_doc_counts is a dictionary that maps a class (i.e., pos/neg) to
         # the number of documents in the training set of that class
-        self.class_total_doc_counts = { POS_TAG: 0.0,
-                                        NEG_TAG: 0.0,
-                                        NEU_TAG: 0.0 }
+        self.class_total_doc_counts = defaultdict(float)
 
         # class_total_word_counts is a dictionary that maps a class (i.e., pos/neg) to
         # the number of words in the training set in documents of that class
-        self.class_total_word_counts = { POS_TAG: 0.0,
-                                         NEG_TAG: 0.0,
-                                         NEU_TAG: 0.0 }
+        self.class_total_word_counts = defaultdict(float)
 
         # class_word_counts is a dictionary of dictionaries. It maps a class (i.e.,
         # pos/neg) to a dictionary of word counts. For example:
         #    self.class_word_counts[POS_LABEL]['awesome']
         # stores the number of times the word 'awesome' appears in documents
         # of the positive class in the training documents.
-        self.class_word_counts = { POS_TAG: defaultdict(float),
-                                   NEG_TAG: defaultdict(float),
-                                   NEU_TAG: defaultdict(float) }
+        self.class_word_counts = defaultdict(lambda : defaultdict(float))
 
-    def update_model(self, bow, label):
+    def train_model(self, training_set):
+        for f in training_set:
+            lyrics = read_lyrics_from_file(os.path.join(PATH_TO_DATA,f))
+            classification = lyrics.pop(0).rstrip().split(',')
+            sentiment = classification.pop(0)
+            lemmas_as_bow = tokenize_doc_bow(lyrics)
+            self.update_model(lemmas_as_bow, sentiment, classification)
+        self.report_statistics_after_training()
+
+    def update_model(self, bow, label, sentiments):
         self.class_total_doc_counts[label] += 1.0
+        for s in sentiments:
+            self.class_total_doc_counts[s] += 1.0
         for token in bow:
             self.class_total_word_counts[label] += bow[token]
             self.class_word_counts[label][token] += bow[token]
             self.vocab.add(token)
+            for s in sentiments:
+                self.class_total_word_counts[s] += bow[token]
+                self.class_word_counts[s][token] += bow[token]
+
 
     def report_statistics_after_training(self):
-        """
-        Report a number of statistics after training.
-        """
-        print "REPORTING CORPUS STATISTICS"
-        print "NUMBER OF DOCUMENTS IN POSITIVE CLASS:", self.class_total_doc_counts[POS_TAG]
-        print "NUMBER OF DOCUMENTS IN NEUTRAL CLASS:", self.class_total_doc_counts[NEU_TAG]
-        print "NUMBER OF DOCUMENTS IN NEGATIVE CLASS:", self.class_total_doc_counts[NEG_TAG]
-        print "NUMBER OF TOKENS IN POSITIVE CLASS:", self.class_total_word_counts[POS_TAG]
-        print "NUMBER OF TOKENS IN NEUTRAL CLASS:", self.class_total_word_counts[NEU_TAG]
-        print "NUMBER OF TOKENS IN NEGATIVE CLASS:", self.class_total_word_counts[NEG_TAG]
-        print "AVERAGE AFFECT TAGS PER SONG:", self.affect_tag_count/sum(class_total_doc_counts.values())
-        print "VOCABULARY SIZE: NUMBER OF UNIQUE WORDTYPES IN TRAINING CORPUS:", len(self.vocab)
+        for c in self.class_total_doc_counts.keys():
+            print "NUMBER OF DOCUMENTS IN ", c, " CLASS: ", self.class_total_doc_counts[c]
+            # print "NUMBER OF LEMMAS IN ", c, " CLASS: ", self.class_total_word_counts[c]
+        # """
+        # Report a number of statistics after training.
+        # """
+        # print "REPORTING CORPUS STATISTICS"
+        # print "NUMBER OF DOCUMENTS IN POSITIVE CLASS:", self.class_total_doc_counts[POS_TAG]
+        # print "NUMBER OF DOCUMENTS IN NEUTRAL CLASS:", self.class_total_doc_counts[NEU_TAG]
+        # print "NUMBER OF DOCUMENTS IN NEGATIVE CLASS:", self.class_total_doc_counts[NEG_TAG]
+        # print "NUMBER OF TOKENS IN POSITIVE CLASS:", self.class_total_word_counts[POS_TAG]
+        # print "NUMBER OF TOKENS IN NEUTRAL CLASS:", self.class_total_word_counts[NEU_TAG]
+        # print "NUMBER OF TOKENS IN NEGATIVE CLASS:", self.class_total_word_counts[NEG_TAG]
+        # print "VOCABULARY SIZE: NUMBER OF UNIQUE WORDTYPES IN TRAINING CORPUS:", len(self.vocab)
 
     def top_n(self, label, n):
         """
