@@ -1,5 +1,5 @@
 from collections import defaultdict
-import os
+import os, math
 from util import *
 
 class NaiveBayes:
@@ -24,14 +24,13 @@ class NaiveBayes:
         self.class_word_counts = defaultdict(lambda : defaultdict(float))
 
     def train_model(self, training_set):
-        print len(training_set)
         for f in training_set:
             lyrics = read_lyrics_from_file(os.path.join(PATH_TO_DATA,f))
             classification = lyrics.pop(0).rstrip().split(',')
             sentiment = classification.pop(0)
             lemmas_as_bow = tokenize_doc_bow(lyrics)
             self.update_model(lemmas_as_bow, sentiment, classification)
-        self.report_statistics_after_training()
+        # self.report_statistics_after_training()
 
     def update_model(self, bow, label, sentiments):
         self.class_total_doc_counts[label] += 1.0
@@ -62,6 +61,27 @@ class NaiveBayes:
         # print "NUMBER OF TOKENS IN NEGATIVE CLASS:", self.class_total_word_counts[NEG_TAG]
         # print "VOCABULARY SIZE: NUMBER OF UNIQUE WORDTYPES IN TRAINING CORPUS:", len(self.vocab)
 
+    def evaluate_model(self, test_set):
+        sentiment_correct_count = 0.0
+        emotions_count = 0.0
+        correct_emotions_count = 0.0
+        for f in test_set:
+            lyrics = read_lyrics_from_file(os.path.join(PATH_TO_DATA,f))
+            classification = lyrics.pop(0).rstrip().split(',')
+            sentiment = classification.pop(0)
+            lemmas_as_bow = tokenize_doc_bow(lyrics)
+            predicted_sentiment, classifications = self.classify(lemmas_as_bow, 1)
+            emotions_count += len(classification)
+            if predicted_sentiment == sentiment:
+                sentiment_correct_count += 1
+            # top_classes = classifications.keys()
+            sorted(classifications, key=classifications.get)
+            classification_probs = classifications.keys()
+            for top_class in classification_probs[:len(classification)]:
+                if classifications[top_class] in classification:
+                    correct_emotions_count += 1
+        return (100*sentiment_correct_count/len(test_set), 100*correct_emotions_count/emotions_count)
+
     def top_n(self, label, n):
         """
 
@@ -89,7 +109,11 @@ class NaiveBayes:
         return self.log_likelihood(bow, label, alpha) + self.log_prior(label)
 
     def classify(self, bow, alpha):
-        posLog = self.unnormalized_log_posterior(bow, POS_LABEL, alpha)
-        neuLog = self.unnormalized_log_posterior(bow, POS_LABEL, alpha)
-        negLog = self.unnormalized_log_posterior(bow, NEG_LABEL, alpha)
-        return POS_LABEL if posLog > negLog else NEG_LABEL
+        sentiment_probs = defaultdict(float)
+        emotion_probs = defaultdict(float)
+        for sentiment in ['+', '0', '-']:
+            sentiment_probs[self.unnormalized_log_posterior(bow, sentiment, alpha)] = sentiment
+        for label in self.class_total_doc_counts.keys():
+            if label not in ['+', '0', '-']:
+                emotion_probs[self.unnormalized_log_posterior(bow, label, alpha)] = label
+        return (sentiment_probs[max(sentiment_probs.keys())], emotion_probs)

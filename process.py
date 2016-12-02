@@ -37,15 +37,25 @@ def split_by_class():
 
 
 def cross_validate(folds, method):
+    if folds < 2:
+        print 'Must have at least 2 folds.. evaluating 2-fold cross validation'
+        folds = 2
     test_size = 100/folds
     training_size = 100 - test_size
     songs_by_class = split_by_class()
+    sentiment_accuracy_sum = 0.0
+    emotion_accuracy_sum = 0.0
     for f in range(0,folds):
         test_set = songs_by_class['+'][int(test_size*f):int(test_size+test_size*f)] + songs_by_class['0'][int(test_size*f):int(test_size+test_size*f)] +songs_by_class['-'][int(test_size*f):int(test_size+test_size*f)]
         training_set = songs_by_class['+'][int(test_size+test_size*f):] + songs_by_class['+'][:int(test_size*f)] + songs_by_class['0'][int(test_size+test_size*f):] + songs_by_class['0'][:int(test_size*f)] + songs_by_class['-'][int(test_size+test_size*f):] + songs_by_class['-'][:int(test_size*f)]
         if method == 'nb':
             nb = NaiveBayes()
             nb.train_model(training_set)
+            emotion_accuracy, sentiment_accuracy = nb.evaluate_model(test_set)
+            emotion_accuracy_sum += emotion_accuracy
+            sentiment_accuracy_sum += sentiment_accuracy
+    print "EMOTION ACCURACY ", emotion_accuracy_sum / folds, " SENTIMENT ACCURACY: ", sentiment_accuracy_sum / folds
+
 
 def evaluate_sa_with_biases():
     training_set = os.listdir(PATH_TO_TRAIN)
@@ -90,7 +100,7 @@ def evaluate_sa_with_biases():
     plt.show()
 
 # report_statistics()
-cross_validate(1, 'nb')
+cross_validate(10, 'nb')
 
 # evaluate_sa_with_biases()
 # nb = NaiveBayes()
