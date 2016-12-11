@@ -1,6 +1,7 @@
 from collections import defaultdict
 import os, math
 from util import *
+import heapq as heap
 
 class NaiveBayes:
     def __init__(self):
@@ -30,7 +31,8 @@ class NaiveBayes:
             sentiment = classification.pop(0)
             lemmas_as_bow = tokenize_doc_bow(lyrics)
             self.update_model(lemmas_as_bow, sentiment, classification)
-        # self.report_statistics_after_training()
+        self.report_statistics_after_training()
+        self.report_most_likely_words(self.class_word_counts['+'])
 
     def update_model(self, bow, label, sentiments):
         self.class_total_doc_counts[label] += 1.0
@@ -44,10 +46,23 @@ class NaiveBayes:
                 self.class_total_word_counts[s] += bow[token]
                 self.class_word_counts[s][token] += bow[token]
 
+    def report_most_likely_words(self, label):
+        likelihoods = defaultdict(float)
+        for word in words:
+            heap.
+
+
+
+    def p_word_given_label_and_psuedocount(self, word, label, alpha):
+        return (self.class_word_counts[label][word] + alpha) / (self.class_total_word_counts[label] + alpha)
+
+    def likelihood_ratio(self, word, alpha):
+        return self.p_word_given_label_and_psuedocount(word, POS_LABEL, alpha) / self.p_word_given_label_and_psuedocount(word, NEG_LABEL, alpha)
 
     def report_statistics_after_training(self):
-        for c in self.class_total_doc_counts.keys():
-            print "NUMBER OF DOCUMENTS IN ", c, " CLASS: ", self.class_total_doc_counts[c]
+        print self.top_n('+', 10)
+        # for c in self.class_total_doc_counts.keys():
+        #     print "NUMBER OF DOCUMENTS IN ", c, " CLASS: ", self.class_total_doc_counts[c]
             # print "NUMBER OF LEMMAS IN ", c, " CLASS: ", self.class_total_word_counts[c]
         # """
         # Report a number of statistics after training.

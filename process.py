@@ -4,6 +4,7 @@ import re
 import os
 import matplotlib.pyplot as plt
 import sys
+from random import sample
 from util import *
 
 from simpleaveraging import SimpleAveraging
@@ -54,11 +55,18 @@ def cross_validate(folds, method):
             emotion_accuracy, sentiment_accuracy = nb.evaluate_model(test_set)
             emotion_accuracy_sum += emotion_accuracy
             sentiment_accuracy_sum += sentiment_accuracy
-    print "EMOTION ACCURACY ", emotion_accuracy_sum / folds, " SENTIMENT ACCURACY: ", sentiment_accuracy_sum / folds
+        elif method == 'sa':
+            sa = SimpleAveraging()
+            sa.get_stats(test_set + training_set)
+            # sa.train(sample(training_set, len(training_set)))
+        elif method =='r':
+            nb = NaiveBayes()
+            nb.train_model(test_set + training_set)
+    # print "EMOTION ACCURACY ", emotion_accuracy_sum / folds, " SENTIMENT ACCURACY: ", sentiment_accuracy_sum / folds
 
 
 def evaluate_sa_with_biases():
-    training_set = os.listdir(PATH_TO_TRAIN)
+    training_set = os.listdir(PATH_TO_DATA)
     sa = SimpleAveraging()
     doc_count = 0.0
     sa_simple_accurate = 0.0
@@ -66,7 +74,7 @@ def evaluate_sa_with_biases():
     biases = []
     accuracies_simple = []
     accuracies = []
-    for bias in drange(-2.5, 3.5, 0.25):
+    for bias in drange(-1, 3.5, 0.5):
         print bias
         biases.append(bias)
         for f in training_set:
@@ -100,7 +108,7 @@ def evaluate_sa_with_biases():
     plt.show()
 
 # report_statistics()
-cross_validate(10, 'nb')
+cross_validate(10, 'r')
 
 # evaluate_sa_with_biases()
 # nb = NaiveBayes()

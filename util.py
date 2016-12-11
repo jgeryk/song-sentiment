@@ -1,12 +1,14 @@
 from collections import defaultdict
 from nltk.stem.wordnet import WordNetLemmatizer
 lmtzr = WordNetLemmatizer()
-
+import re
 import os
+
 NEG_TAG = '-'
 POS_TAG = '+'
 NEU_TAG = '0'
 PATH_TO_DATA = os.getcwd() + '/song-sentiment-data'
+
 affect_map = {
     30: 'Happy',
     60: 'Excited',
@@ -36,6 +38,7 @@ def tokenize_doc_words(doc):
         tokens = lines.split()
         lowered_tokens = map(lambda t: t.lower(), tokens)
         for token in lowered_tokens:
+            token = re.sub(r'\W+', '', token.encode('utf-8'))
             token = get_lemma(token)
             lemmas.append(token)
     return lemmas
@@ -52,6 +55,7 @@ def tokenize_doc_bow(doc):
         tokens = lines.split()
         lowered_tokens = map(lambda t: t.lower(), tokens)
         for token in lowered_tokens:
+            token = re.sub(r'\W+', '', token.encode('utf-8'))
             token = get_lemma(token)
             bow[token] += 1.0
     return bow
@@ -81,9 +85,9 @@ def report_statistics():
                                NEG_TAG: defaultdict(float),
                                NEU_TAG: defaultdict(float) }
     for f in os.listdir(PATH_TO_DATA):
-        f = os.path.join(PATH_TO_TRAIN,f)
+        f = os.path.join(PATH_TO_DATA,f)
         with open(f, 'r') as txt:
-            lyrics = read_lyrics_from_file(os.path.join(PATH_TO_TRAIN,f))
+            lyrics = read_lyrics_from_file(os.path.join(PATH_TO_DATA,f))
             classification = lyrics.pop(0).rstrip().split(',')
             sentiment = classification.pop(0)
             lemmas_as_bow = tokenize_doc_bow(lyrics)
@@ -95,7 +99,7 @@ def report_statistics():
                 vocab.add(lemma)
                 class_total_word_counts[sentiment] += count
                 class_word_counts[sentiment][lemma] += count
-    sorted(self.class_word_counts[label].items(), key=lambda (w,c): -c)[:n]
+    # sorted(class_word_counts[label].items(), key=lambda (w,c): -c)[:n]
     print "REPORTING CORPUS STATISTICS"
     print "NUMBER OF DOCUMENTS IN POSITIVE CLASS:", class_total_doc_counts[POS_TAG]
     print "NUMBER OF DOCUMENTS IN NEUTRAL CLASS:", class_total_doc_counts[NEU_TAG]
