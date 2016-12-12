@@ -29,10 +29,10 @@ class NaiveBayes:
             lyrics = read_lyrics_from_file(os.path.join(PATH_TO_DATA,f))
             classification = lyrics.pop(0).rstrip().split(',')
             sentiment = classification.pop(0)
-            lemmas_as_bow = tokenize_doc_bow(lyrics)
+            lemmas_as_bow = lemmatize_doc_bow(lyrics)
             self.update_model(lemmas_as_bow, sentiment, classification)
         self.report_statistics_after_training()
-        self.report_most_likely_words(self.class_word_counts['+'])
+        self.report_most_likely_words('+', 0.3)
 
     def update_model(self, bow, label, sentiments):
         self.class_total_doc_counts[label] += 1.0
@@ -46,21 +46,31 @@ class NaiveBayes:
                 self.class_total_word_counts[s] += bow[token]
                 self.class_word_counts[s][token] += bow[token]
 
-    def report_most_likely_words(self, label):
+    def report_most_likely_words(self, label, alpha):
         likelihoods = defaultdict(float)
-        for word in words:
-            heap.
-
-
+        for word in self.class_word_counts[label]:
+            if(self.class_word_counts[label][word]>2):
+                likelihoods[word] = self.likelihood_ratio(word, label, alpha)
+        print sorted(likelihoods.items(), key=lambda x:x[1])
+        # print dict(sorted(likelihoods.items(), key=likelihoods.get, reverse=True))
 
     def p_word_given_label_and_psuedocount(self, word, label, alpha):
         return (self.class_word_counts[label][word] + alpha) / (self.class_total_word_counts[label] + alpha)
 
-    def likelihood_ratio(self, word, alpha):
-        return self.p_word_given_label_and_psuedocount(word, POS_LABEL, alpha) / self.p_word_given_label_and_psuedocount(word, NEG_LABEL, alpha)
+    def likelihood_ratio(self, word, label, alpha):
+        numerator = self.p_word_given_label_and_psuedocount(word, label, alpha)
+        denom = 1
+        if label in ['+', '-', '0']:
+            likelihoods = [self.p_word_given_label_and_psuedocount(word, y, alpha) for y in ['+', '0', '-'] if y is not label]
+            denom = sum(likelihoods)
+        else:
+            likelihoods = [self.p_word_given_label_and_psuedocount(word, y, alpha) for y in affect_map.keys() if y is not label]
+            denom = sum(likelihoods)
+        return numerator / denom
 
     def report_statistics_after_training(self):
-        print self.top_n('+', 10)
+        pass
+        # print self.top_n('+', 10)
         # for c in self.class_total_doc_counts.keys():
         #     print "NUMBER OF DOCUMENTS IN ", c, " CLASS: ", self.class_total_doc_counts[c]
             # print "NUMBER OF LEMMAS IN ", c, " CLASS: ", self.class_total_word_counts[c]

@@ -108,7 +108,7 @@ def evaluate_sa_with_biases():
     plt.show()
 
 # report_statistics()
-cross_validate(10, 'r')
+cross_validate(2, 'r')
 
 # evaluate_sa_with_biases()
 # nb = NaiveBayes()

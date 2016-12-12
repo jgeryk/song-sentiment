@@ -60,6 +60,26 @@ def tokenize_doc_bow(doc):
             bow[token] += 1.0
     return bow
 
+def lemmatize_doc_bow(doc):
+    """
+
+    Tokenize a document and return its bag-of-words representation.
+    doc - a string representing a document.
+    returns a dictionary mapping each word to the number of times it appears in doc.
+    """
+    bow = defaultdict(float)
+    lemmas = set()
+    for lines in doc:
+        tokens = lines.split()
+        lowered_tokens = map(lambda t: t.lower(), tokens)
+        for token in lowered_tokens:
+            if token not in lemmas:
+                token = re.sub(r'\W+', '', token.encode('utf-8'))
+                token = get_lemma(token)
+                bow[token] += 1.0
+                lemmas.add(token)
+    return bow
+
 def get_lemma(word):
     lemma_n = lmtzr.lemmatize(word)
     lemma_v = lmtzr.lemmatize(word, 'v')
