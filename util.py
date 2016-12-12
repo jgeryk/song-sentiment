@@ -73,9 +73,9 @@ def lemmatize_doc_bow(doc):
         tokens = lines.split()
         lowered_tokens = map(lambda t: t.lower(), tokens)
         for token in lowered_tokens:
+            token = re.sub(r'\W+', '', token.encode('utf-8'))
+            token = get_lemma(token)
             if token not in lemmas:
-                token = re.sub(r'\W+', '', token.encode('utf-8'))
-                token = get_lemma(token)
                 bow[token] += 1.0
                 lemmas.add(token)
     return bow

@@ -2,6 +2,9 @@ from collections import defaultdict
 import os, math
 from util import *
 import heapq as heap
+import json
+from wordcloud import WordCloud, STOPWORDS
+import matplotlib.pyplot as plt
 
 class NaiveBayes:
     def __init__(self):
@@ -25,6 +28,7 @@ class NaiveBayes:
         self.class_word_counts = defaultdict(lambda : defaultdict(float))
 
     def train_model(self, training_set):
+        print len(training_set)
         for f in training_set:
             lyrics = read_lyrics_from_file(os.path.join(PATH_TO_DATA,f))
             classification = lyrics.pop(0).rstrip().split(',')
@@ -32,7 +36,7 @@ class NaiveBayes:
             lemmas_as_bow = lemmatize_doc_bow(lyrics)
             self.update_model(lemmas_as_bow, sentiment, classification)
         self.report_statistics_after_training()
-        self.report_most_likely_words('+', 0.3)
+        self.report_most_likely_words('210', 0.3)
 
     def update_model(self, bow, label, sentiments):
         self.class_total_doc_counts[label] += 1.0
@@ -51,8 +55,29 @@ class NaiveBayes:
         for word in self.class_word_counts[label]:
             if(self.class_word_counts[label][word]>2):
                 likelihoods[word] = self.likelihood_ratio(word, label, alpha)
-        print sorted(likelihoods.items(), key=lambda x:x[1])
-        # print dict(sorted(likelihoods.items(), key=likelihoods.get, reverse=True))
+        res = sorted(likelihoods.items(), key=lambda x:x[1])[-50:]
+        print res
+
+    def createWordCloud(dict):
+        with open('result.json', 'w') as fp:
+            json.dump(dict((x, y) for x, y in res), fp)
+        with open('result.json') as data_file:
+            data = json.load(data_file)
+            words = []
+            total = sum(data.values())
+            for word in data:
+                words = words + [word for i in range(int(10*data[word]))]
+            wordcloud = WordCloud(
+                                      background_color='white',
+                                      width=1200,
+                                      height=1000,
+                                      max_words=50
+                                     ).generate(" ".join(words))
+            plt.imshow(wordcloud)
+            plt.axis('off')
+            plt.show()
+
+
 
     def p_word_given_label_and_psuedocount(self, word, label, alpha):
         return (self.class_word_counts[label][word] + alpha) / (self.class_total_word_counts[label] + alpha)
