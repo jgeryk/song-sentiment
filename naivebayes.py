@@ -3,7 +3,7 @@ import os, math
 from util import *
 import heapq as heap
 import json
-from wordcloud import WordCloud, STOPWORDS
+# from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 
 class NaiveBayes:
@@ -35,7 +35,6 @@ class NaiveBayes:
             sentiment = classification.pop(0)
             lemmas_as_bow = lemmatize_doc_bow(lyrics)
             self.update_model(lemmas_as_bow, sentiment, classification)
-        # self.report_statistics_after_training()
         # self.report_most_likely_words('210', 0.3)
 
     def update_model(self, bow, label, sentiments):
@@ -139,8 +138,15 @@ class NaiveBayes:
             sentiment_probs[self.unnormalized_log_posterior([lemma], sentiment, alpha)] = sentiment
         return sentiment_probs
 
+    def lemma_max_likelihoods_affect(self, lemma, alpha):
+        affect_probs = defaultdict(float)
+        for affect in affect_map:
+            affect_probs[self.unnormalized_log_posterior([lemma], affect, alpha)] = affect
+        return affect_probs
+
     def log_prior(self, label):
-        return math.log(self.class_total_doc_counts[label] / (sum(self.class_total_doc_counts.itervalues())))
+        if self.class_total_doc_counts[str(label)] == 0: return 0
+        return math.log(self.class_total_doc_counts[str(label)] / (sum(self.class_total_doc_counts.itervalues())))
 
     def unnormalized_log_posterior(self, bow, label, alpha):
         return self.log_likelihood(bow, label, alpha) + self.log_prior(label)

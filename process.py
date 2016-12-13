@@ -64,7 +64,7 @@ def cross_validate(folds, method):
             sentiment_accuracy_sum += sentiment_accuracy
         elif method == 'pool':
             pool = AffectPool(NaiveBayes(), SimpleAveraging())
-            pool.simple_train()
+            pool.simple_train(training_set)
         elif method =='r':
             nb = NaiveBayes()
             nb.train_model(test_set + training_set)
@@ -114,4 +114,4 @@ def evaluate_sa_with_biases():
     plt.show()
 
 # report_statistics()
-cross_validate(10, 'sa')
+cross_validate(10, 'pool')
