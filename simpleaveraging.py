@@ -80,12 +80,12 @@ class SimpleAveraging:
 
 
     def train(self, training_set):
-        return self.get_stats(training_set)
+        return self.get_stats(training_set[-20:])
 
     def evaluate(self, test_set, avgs):
         self.sentiment_correct_count = 0
         self.affect_correct_count = 0
-        avg_valence = avgs['+_valence'] + avgs['0_valence'] + avgs['-_valence'] / 3
+        avg_valence = (avgs['+_valence'] + avgs['0_valence'] + avgs['-_valence']) / 3
         std_dev = math.sqrt(sum([(avgs[sentiment + '_valence'] - avg_valence)*(avgs[sentiment + '_valence'] - avg_valence) for sentiment in ['+', '0', '-']]) / 3)
         print "STANDARD DEVIATION: ", std_dev
         # valence_deviation =  (avgs['+_valence'] - avgs['-_valence']) / 3
@@ -101,9 +101,12 @@ class SimpleAveraging:
             affect_prediction = self.classify(classes, -1.7, 2.2)
             if sentiment == sentiment_prediction:
                 self.sentiment_correct_count += 1
-            if affect_prediction in classification:
+            print classification
+            print affect_prediction
+            if str(affect_prediction) in classification:
                 self.affect_correct_count += 1
         print 100*self.sentiment_correct_count / len(test_set)
+        print 100*self.affect_correct_count / len(test_set)
         return (100*self.sentiment_correct_count / len(test_set), 100*self.affect_correct_count / len(test_set))
 
 
@@ -138,7 +141,7 @@ class SimpleAveraging:
     def classify(self, lyric_stats, valence_bias, arousal_bias):
         angle_degrees = self.calculate_angle(lyric_stats['Valence'] + valence_bias, lyric_stats['Arousal'] + arousal_bias)
         emotion_degree = (math.ceil(angle_degrees / 30)) * 30
-        return emotion_degree
+        return int(emotion_degree)
 
 # lyrics = read_lyrics_from_file(SONG_FILE)
 # qual = qualify(lyrics)
