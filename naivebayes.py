@@ -35,8 +35,8 @@ class NaiveBayes:
             sentiment = classification.pop(0)
             lemmas_as_bow = lemmatize_doc_bow(lyrics)
             self.update_model(lemmas_as_bow, sentiment, classification)
-        self.report_statistics_after_training()
-        self.report_most_likely_words('210', 0.3)
+        # self.report_statistics_after_training()
+        # self.report_most_likely_words('210', 0.3)
 
     def update_model(self, bow, label, sentiments):
         self.class_total_doc_counts[label] += 1.0
@@ -77,8 +77,6 @@ class NaiveBayes:
             plt.axis('off')
             plt.show()
 
-
-
     def p_word_given_label_and_psuedocount(self, word, label, alpha):
         return (self.class_word_counts[label][word] + alpha) / (self.class_total_word_counts[label] + alpha)
 
@@ -92,24 +90,6 @@ class NaiveBayes:
             likelihoods = [self.p_word_given_label_and_psuedocount(word, y, alpha) for y in affect_map.keys() if y is not label]
             denom = sum(likelihoods)
         return numerator / denom
-
-    def report_statistics_after_training(self):
-        pass
-        # print self.top_n('+', 10)
-        # for c in self.class_total_doc_counts.keys():
-        #     print "NUMBER OF DOCUMENTS IN ", c, " CLASS: ", self.class_total_doc_counts[c]
-            # print "NUMBER OF LEMMAS IN ", c, " CLASS: ", self.class_total_word_counts[c]
-        # """
-        # Report a number of statistics after training.
-        # """
-        # print "REPORTING CORPUS STATISTICS"
-        # print "NUMBER OF DOCUMENTS IN POSITIVE CLASS:", self.class_total_doc_counts[POS_TAG]
-        # print "NUMBER OF DOCUMENTS IN NEUTRAL CLASS:", self.class_total_doc_counts[NEU_TAG]
-        # print "NUMBER OF DOCUMENTS IN NEGATIVE CLASS:", self.class_total_doc_counts[NEG_TAG]
-        # print "NUMBER OF TOKENS IN POSITIVE CLASS:", self.class_total_word_counts[POS_TAG]
-        # print "NUMBER OF TOKENS IN NEUTRAL CLASS:", self.class_total_word_counts[NEU_TAG]
-        # print "NUMBER OF TOKENS IN NEGATIVE CLASS:", self.class_total_word_counts[NEG_TAG]
-        # print "VOCABULARY SIZE: NUMBER OF UNIQUE WORDTYPES IN TRAINING CORPUS:", len(self.vocab)
 
     def evaluate_model(self, test_set):
         sentiment_correct_count = 0.0
@@ -130,6 +110,7 @@ class NaiveBayes:
             for top_class in classification_probs[:len(classification)]:
                 if classifications[top_class] in classification:
                     correct_emotions_count += 1
+        print 100*sentiment_correct_count/len(test_set)
         return (100*sentiment_correct_count/len(test_set), 100*correct_emotions_count/emotions_count)
 
     def top_n(self, label, n):
@@ -151,6 +132,12 @@ class NaiveBayes:
         for word in bow:
             likelihood += math.log(self.p_word_given_label_and_psuedocount(word, label, alpha))
         return likelihood
+
+    def lemma_max_likelihoods_simple(self, lemma, alpha):
+        sentiment_probs = defaultdict(float)
+        for sentiment in ['+', '0', '-']:
+            sentiment_probs[self.unnormalized_log_posterior([lemma], sentiment, alpha)] = sentiment
+        return sentiment_probs
 
     def log_prior(self, label):
         return math.log(self.class_total_doc_counts[label] / (sum(self.class_total_doc_counts.itervalues())))

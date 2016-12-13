@@ -9,6 +9,7 @@ from util import *
 
 from simpleaveraging import SimpleAveraging
 from naivebayes import NaiveBayes
+from affectpool import AffectPool
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -52,17 +53,22 @@ def cross_validate(folds, method):
         if method == 'nb':
             nb = NaiveBayes()
             nb.train_model(training_set)
-            emotion_accuracy, sentiment_accuracy = nb.evaluate_model(test_set)
+            sentiment_accuracy, emotion_accuracy = nb.evaluate_model(test_set)
             emotion_accuracy_sum += emotion_accuracy
             sentiment_accuracy_sum += sentiment_accuracy
         elif method == 'sa':
             sa = SimpleAveraging()
-            sa.get_stats(test_set + training_set)
-            # sa.train(sample(training_set, len(training_set)))
+            avgs = sa.train(training_set)
+            sentiment_accuracy, emotion_accuracy = sa.evaluate(test_set, avgs)
+            emotion_accuracy_sum += emotion_accuracy
+            sentiment_accuracy_sum += sentiment_accuracy
+        elif method == 'pool':
+            pool = AffectPool(NaiveBayes(), SimpleAveraging())
+            pool.simple_train()
         elif method =='r':
             nb = NaiveBayes()
             nb.train_model(test_set + training_set)
-    # print "EMOTION ACCURACY ", emotion_accuracy_sum / folds, " SENTIMENT ACCURACY: ", sentiment_accuracy_sum / folds
+    print "EMOTION ACCURACY ", emotion_accuracy_sum / folds, " SENTIMENT ACCURACY: ", sentiment_accuracy_sum / folds
 
 
 def evaluate_sa_with_biases():
@@ -108,29 +114,4 @@ def evaluate_sa_with_biases():
     plt.show()
 
 # report_statistics()
-cross_validate(2, 'r')
-
-# evaluate_sa_with_biases()
-# nb = NaiveBayes()
-# training_set = os.listdir(PATH_TO_TRAIN)
-# doc_count = 0
-# for f in training_set:
-#     doc_count += 1.0
-#     lyrics = read_lyrics_from_file(os.path.join(PATH_TO_TRAIN,f))
-#     classification = lyrics.pop(0).rstrip().split(',')
-#     sentiment = classification.pop(0)
-#     lemmas_as_bow = tokenize_doc_bow(lyrics)
-#     nb.update_model(lemmas_as_bow, sentiment)
-
-    # lemmas_as_list = tokenize_doc_words(lyrics)
-    # lyrics_affect_data = sa.qualify(lemmas_as_list, -2, 1)
-    # sent_pred = sa.simple_classify(lyrics_affect_data)
-    # if sent_pred == sentiment:
-    #     sa_accurate += 1.0
-
-# nb.report_statistics_after_training()
-# print 'Doc Count ', doc_count
-# print 'Correct ', sa_accurate, ': ', 100*sa_accurate/doc_count, '%'
-
-# print nb.class_total_doc_counts
-# print nb.top_n('-', 10)
+cross_validate(10, 'sa')
