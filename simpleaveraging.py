@@ -80,7 +80,7 @@ class SimpleAveraging:
 
 
     def train(self, training_set):
-        return self.get_stats(training_set[-20:])
+        return self.get_stats(training_set)
 
     def evaluate(self, test_set, avgs):
         self.sentiment_correct_count = 0
@@ -91,6 +91,8 @@ class SimpleAveraging:
         # valence_deviation =  (avgs['+_valence'] - avgs['-_valence']) / 3
         valence_threshold_high = avgs['+_valence'] - std_dev
         valence_threshold_low = avgs['-_valence'] + std_dev
+        print valence_threshold_high
+        print valence_threshold_low
         for f in test_set:
             lyrics = read_lyrics_from_file(os.path.join(PATH_TO_DATA,f))
             classification = lyrics.pop(0).rstrip().split(',')
@@ -98,11 +100,9 @@ class SimpleAveraging:
             lemmas = tokenize_doc_words(lyrics)
             classes = self.qualify(lemmas, 0, 0)
             sentiment_prediction = self.simple_classify(classes, valence_threshold_high, valence_threshold_low)
-            affect_prediction = self.classify(classes, -1.7, 2.2)
+            affect_prediction = self.classify(classes, -2.2, 1.7)
             if sentiment == sentiment_prediction:
                 self.sentiment_correct_count += 1
-            print classification
-            print affect_prediction
             if str(affect_prediction) in classification:
                 self.affect_correct_count += 1
         print 100*self.sentiment_correct_count / len(test_set)
