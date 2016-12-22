@@ -3,7 +3,7 @@ import os, math
 from util import *
 import heapq as heap
 import json
-from wordcloud import WordCloud, STOPWORDS
+# from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 
 class NaiveBayes:
@@ -35,7 +35,6 @@ class NaiveBayes:
             sentiment = classification.pop(0)
             lemmas_as_bow = lemmatize_doc_bow(lyrics)
             self.update_model(lemmas_as_bow, sentiment, classification)
-        # self.report_statistics_after_training()
         # self.report_most_likely_words('210', 0.3)
 
     def update_model(self, bow, label, sentiments):
@@ -91,7 +90,7 @@ class NaiveBayes:
             denom = sum(likelihoods)
         return numerator / denom
 
-    def evaluate_model(self, test_set):
+    def evaluate_model(self, test_set, training_size):
         sentiment_correct_count = 0.0
         emotions_count = 0.0
         correct_emotions_count = 0.0
@@ -100,7 +99,7 @@ class NaiveBayes:
             classification = lyrics.pop(0).rstrip().split(',')
             sentiment = classification.pop(0)
             lemmas_as_bow = tokenize_doc_bow(lyrics)
-            predicted_sentiment, classifications = self.classify(lemmas_as_bow, 1)
+            predicted_sentiment, classifications = self.classify(lemmas_as_bow, 1, training_size)
             emotions_count += len(classification)
             if predicted_sentiment == sentiment:
                 sentiment_correct_count += 1
@@ -122,35 +121,45 @@ class NaiveBayes:
         # def update_bow(lemmas, class):
 
     def p_word_given_label(self, word, label):
-        return self.class_word_counts[label][word] / self.class_total_word_counts[label]
+        return self.class_word_counts[str(label)][word] / self.class_total_word_counts[str(label)]
 
     def p_word_given_label_and_psuedocount(self, word, label, alpha):
-        return (self.class_word_counts[label][word] + alpha) / (self.class_total_word_counts[label] + alpha)
+        return (self.class_word_counts[str(label)][word] + alpha) / (self.class_total_word_counts[str(label)] + alpha)
 
     def log_likelihood(self, bow, label, alpha):
         likelihood = 0;
+        # print bow
+        # print label
         for word in bow:
             likelihood += math.log(self.p_word_given_label_and_psuedocount(word, label, alpha))
+        print likelihood
         return likelihood
 
-    def lemma_max_likelihoods_simple(self, lemma, alpha):
+    def lemma_max_likelihoods_simple(self, lemma, alpha, doc_count):
         sentiment_probs = defaultdict(float)
         for sentiment in ['+', '0', '-']:
-            sentiment_probs[self.unnormalized_log_posterior([lemma], sentiment, alpha)] = sentiment
+            sentiment_probs[self.unnormalized_log_posterior([lemma], sentiment, alpha, doc_count)] = sentiment
         return sentiment_probs
 
-    def log_prior(self, label):
-        return math.log(self.class_total_doc_counts[label] / (sum(self.class_total_doc_counts.itervalues())))
+    def lemma_max_likelihoods_affect(self, lemma, alpha, doc_count):
+        affect_probs = defaultdict(float)
+        for affect in affect_map:
+            affect_probs[self.unnormalized_log_posterior([lemma], affect, alpha, doc_count)] = affect
+        return affect_probs
 
-    def unnormalized_log_posterior(self, bow, label, alpha):
-        return self.log_likelihood(bow, label, alpha) + self.log_prior(label)
+    def log_prior(self, label, doc_count):
+        if self.class_total_doc_counts[str(label)] == 0: return 0
+        return math.log(self.class_total_doc_counts[str(label)] / doc_count)
 
-    def classify(self, bow, alpha):
+    def unnormalized_log_posterior(self, bow, label, alpha, doc_count):
+        return self.log_likelihood(bow, label, alpha) + self.log_prior(label, doc_count)
+
+    def classify(self, bow, alpha, doc_count):
         sentiment_probs = defaultdict(float)
         emotion_probs = defaultdict(float)
         for sentiment in ['+', '0', '-']:
-            sentiment_probs[self.unnormalized_log_posterior(bow, sentiment, alpha)] = sentiment
+            sentiment_probs[self.unnormalized_log_posterior(bow, sentiment, alpha, doc_count)] = sentiment
         for label in self.class_total_doc_counts.keys():
             if label not in ['+', '0', '-']:
-                emotion_probs[self.unnormalized_log_posterior(bow, label, alpha)] = label
+                emotion_probs[self.unnormalized_log_posterior(bow, label, alpha, doc_count)] = label
         return (sentiment_probs[max(sentiment_probs.keys())], emotion_probs)
