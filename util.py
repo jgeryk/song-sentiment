@@ -24,7 +24,6 @@ affect_map = {
     360: 'Content'
 }
 
-
 def read_lyrics_from_file(file):
     words = []
     f = open(file)

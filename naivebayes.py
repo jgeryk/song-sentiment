@@ -36,6 +36,7 @@ class NaiveBayes:
             lemmas_as_bow = lemmatize_doc_bow(lyrics)
             self.update_model(lemmas_as_bow, sentiment, classification)
         # self.report_most_likely_words('210', 0.3)
+        print self.class_total_doc_counts
 
     def update_model(self, bow, label, sentiments):
         self.class_total_doc_counts[label] += 1.0
@@ -118,7 +119,6 @@ class NaiveBayes:
         Returns the most frequent n tokens for documents with class 'label'.
         """
         return sorted(self.class_word_counts[label].items(), key=lambda (w,c): -c)[:n]
-        # def update_bow(lemmas, class):
 
     def p_word_given_label(self, word, label):
         return self.class_word_counts[str(label)][word] / self.class_total_word_counts[str(label)]
